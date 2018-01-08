@@ -1,0 +1,26 @@
+# Ignore all files and folders in the root folder.
+/*
+
+# Include the .gitignore file.
+!.gitignore
+
+# Include the LICENSE file.
+!LICENSE
+
+# Include the README.md file.
+!README.md
+
+# Include the CMakeLists.txt file.
+!CMakeLists.txt
+
+# Include the Source folder.
+!Source/
+
+# Include all files in the Source folder.
+!Source/*
+
+# Include the Data folder.
+!Data/
+
+# Include all files in the Data folder.
+!Data/*

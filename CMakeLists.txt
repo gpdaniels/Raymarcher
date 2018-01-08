@@ -1,0 +1,44 @@
+# Define the minimum version of CMake that is required
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8.11)
+
+# Project name
+SET(PROJECT_NAME "Raymarch")
+PROJECT(${PROJECT_NAME})
+
+# Verbose output
+MESSAGE(STATUS "---- Preparing: ${PROJECT_NAME} ----")
+
+# Build flags
+SET(CMAKE_CXX_FLAGS "-std=c++1z -Wall -Wextra -pedantic -fno-exceptions -fno-rtti")
+SET(CMAKE_C_FLAGS ${CMAKE_CXX_FLAGS})
+# Debug flags
+SET(CMAKE_CXX_FLAGS_DEBUG "-O0 -g3 -D_DEBUG")
+SET(CMAKE_C_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
+# Release flags
+SET(CMAKE_CXX_FLAGS_RELEASE "-O3 -Ofast -DNDEBUG")
+SET(CMAKE_C_FLAGS_RELEASE ${CMAKE_CXX_FLAGS_RELEASE})
+
+# Add the source folder to the include path
+INCLUDE_DIRECTORIES("${PROJECT_SOURCE_DIR}/Source/")
+# Find all source files in a directory recursively
+FILE(GLOB_RECURSE SOURCE_FILES ${PROJECT_SOURCE_DIR}/Source/*.cpp)
+# Find all header files in a directory recursively
+FILE(GLOB_RECURSE HEADER_FILES ${PROJECT_SOURCE_DIR}/Source/*.hpp)
+
+# Executable output
+ADD_EXECUTABLE(${PROJECT_NAME} ${SOURCE_FILES} ${HEADER_FILES})
+
+# Libraries
+FIND_PACKAGE(glfw3 REQUIRED)
+FIND_PACKAGE(GLEW REQUIRED)
+FIND_PACKAGE(OpenGL REQUIRED)
+
+# Link libraries
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${OPENGL_gl_LIBRARY})
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${OPENGL_glu_LIBRARY})
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${GLEW_LIBRARIES})
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${GLFW3_LIBRARY})
+
+# Verbose output
+MESSAGE(STATUS "---- Finished:  ${PROJECT_NAME} ----")
+
