@@ -25,27 +25,28 @@ THE SOFTWARE
 #include "GameState.hpp"
 
 #include <algorithm>
+#include <cmath>
 
 namespace Raymarch {
     // Constructor that initialises all member variables with workable defaults.
     GameState::GameState(const std::array<std::size_t, 3>& SceneSize) {
         // Offset of the visible scene in the map.
-        this->SceneOffset = {static_cast<int>(SceneSize[0]) / 2, 0, static_cast<int>(SceneSize[2]) / 2};
+        this->SceneOffset = {{static_cast<int>(SceneSize[0]) / 2, 0, static_cast<int>(SceneSize[2]) / 2}};
 
         // Floating point position.
-        this->ScenePosition = {static_cast<float>(SceneSize[0]) / 2.0f, 0.0f, static_cast<float>(SceneSize[2]) / 2.0f};
+        this->ScenePosition = {{static_cast<float>(SceneSize[0]) / 2.0f, 0.0f, static_cast<float>(SceneSize[2]) / 2.0f}};
 
         // Floating point speed.
-        this->SceneVelocity = {0, 0, 0};
+        this->SceneVelocity = {{0, 0, 0}};
 
         // Position of the sun / global light source.
-        this->LightPosition  = {0, 1024, 0};
+        this->LightPosition  = {{0, 1024, 0}};
 
         // Position of the camera.
-        this->CameraPosition = {static_cast<float>(SceneSize[0]) / 2.0f, static_cast<float>(SceneSize[1]) / 2.0f, 0.0f};
+        this->CameraPosition = {{static_cast<float>(SceneSize[0]) / 2.0f, static_cast<float>(SceneSize[1]) / 2.0f, 0.0f}};
 
         // Target of the camera.
-        this->CameraTarget   = {static_cast<float>(SceneSize[0]) / 2.0f, 0.0f, static_cast<float>(SceneSize[2]) / 2.0f};
+        this->CameraTarget   = {{static_cast<float>(SceneSize[0]) / 2.0f, 0.0f, static_cast<float>(SceneSize[2]) / 2.0f}};
 
         // Near clip of the renderer.
         this->NearClip = 0.01;
@@ -57,7 +58,7 @@ namespace Raymarch {
         this->FogDistance = 256;
 
         // Colour of the fog.
-        this->FogColour = { 0.5, 0.5, 0.5 };
+        this->FogColour = {{ 0.5, 0.5, 0.5 }};
 
         // The rendered scene volume, the map is unioned into this before rendering.
         this->Scene = Volume(SceneSize);

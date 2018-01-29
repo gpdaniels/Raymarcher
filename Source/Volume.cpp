@@ -35,7 +35,7 @@ namespace Raymarch {
 
     // Construct and allocate a volume of a given size.
     Volume::Volume(std::size_t SizeX, std::size_t SizeY, std::size_t SizeZ)
-        : Size{SizeX, SizeY, SizeZ}
+        : Size{{SizeX, SizeY, SizeZ}}
         , Data(Size[0] * Size[1] * Size[2]) {
     }
 

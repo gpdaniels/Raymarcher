@@ -29,24 +29,9 @@ THE SOFTWARE
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include <cassert>
 #include <iostream>
 #include <random>
-
-// When debugging check for OpenGL errors after every usage.
-#ifdef _DEBUG
-    #define CHECK_GL(Expression) Expression; \
-    { \
-        GLenum EC; \
-        while ((EC = glGetError()) != GL_NO_ERROR) { \
-            std::cerr << "OpenGL error [" << EC << "] on line [" << __LINE__ << "]: " << gluErrorString(EC) << std::endl; \
-            asm("int3"); \
-        } \
-    }
-#else
-    #define CHECK_GL(Expression) Expression;
-#endif
-
-
 
 // The main entry point.
 int main(int ArgumentCount, char* ArgumentArray[]) {
@@ -166,8 +151,11 @@ int main(int ArgumentCount, char* ArgumentArray[]) {
 
     // Have to have a VertexArray
     GLuint VA;
-    CHECK_GL(glGenVertexArrays(1, &VA));
-    CHECK_GL(glBindVertexArray(VA));
+    glGenVertexArrays(1, &VA);
+    assert(glGetError() == GL_NO_ERROR);
+
+    glBindVertexArray(VA);
+    assert(glGetError() == GL_NO_ERROR);
 
     std::cout << "Finished configuring OpenGL." << std::endl;
     std::cout << "----------" << std::endl;
@@ -180,31 +168,31 @@ int main(int ArgumentCount, char* ArgumentArray[]) {
 
     std::cout << "  Creating a game state..." << std::endl;
 
-    Raymarch::GameState State({128, 32, 128});
+    Raymarch::GameState State(std::array<std::size_t, 3>{{128, 32, 128}});
 
     std::cout << "  Creating a floor volume..." << std::endl;
 
     // Build the floor
     Raymarch::Voxel FloorVoxel = Raymarch::Voxel(128, 128, 128, 255);
     Raymarch::Volume Floor = Raymarch::VolumeFactory::CreateSolid(512, 1, 512, FloorVoxel);
-    State.AddToMap({0, 0, 0}, Floor);
+    State.AddToMap({{0, 0, 0}}, Floor);
 
     std::cout << "  Creating a grass volume..." << std::endl;
 
 	// Build the grass brownie.
     Raymarch::Voxel GrassVoxel = Raymarch::Voxel(0, 255, 0, 255);
     Raymarch::Volume Grass = Raymarch::VolumeFactory::CreateRandomSponge(512, 3, 512, 0.5, GrassVoxel);
-    State.AddToMap({0, 1, 0}, Grass);
+    State.AddToMap({{0, 1, 0}}, Grass);
 
     std::cout << "  Creating a sphere volume..." << std::endl;
 
     Raymarch::Voxel SphereVoxel = Raymarch::Voxel(255, 0, 0, 255);
     Raymarch::Volume Sphere = Raymarch::VolumeFactory::CreateEllipsoid(16, 16, 16, SphereVoxel);
-    State.AddToMap({64, 8, 64}, Sphere);
+    State.AddToMap({{64, 8, 64}}, Sphere);
 
     std::cout << "  Creating a column volume..." << std::endl;
 
-    Raymarch::Voxel ColumnVoxel = Raymarch::Voxel(0, 0, 128, 255);
+    Raymarch::Voxel ColumnVoxel = Raymarch::Voxel(0, 0, 128, 32);
     Raymarch::Volume Column = Raymarch::VolumeFactory::CreateColumn(16, 30, 16, 0.3, ColumnVoxel);
 
     std::cout << "  Creating random locations for 100 columns..." << std::endl;
@@ -217,29 +205,29 @@ int main(int ArgumentCount, char* ArgumentArray[]) {
 	for (int i = 0; i < 100; i++) {
         int x = std::floor(RandomDistribution(RandomGenerator) * 32) * 16;
         int z = std::floor(RandomDistribution(RandomGenerator) * 32) * 16;
-        State.AddToMap({x, 1, z}, Column);
+        State.AddToMap({{x, 1, z}}, Column);
 	}
 
     std::cout << "  Creating some coloured block volumes..." << std::endl;
 
-    Raymarch::Voxel BlockVoxelRed   = Raymarch::Voxel(255,   0,   0, 255);
-    Raymarch::Voxel BlockVoxelGreen = Raymarch::Voxel(  0, 255,   0, 255);
-    Raymarch::Voxel BlockVoxelBlue  = Raymarch::Voxel(  0,   0, 255, 255);
-    Raymarch::Voxel BlockVoxelBlack = Raymarch::Voxel(  0,   0,   0, 255);
-    Raymarch::Voxel BlockVoxelGrey  = Raymarch::Voxel(128, 128, 128, 255);
-    Raymarch::Voxel BlockVoxelWhite = Raymarch::Voxel(255, 255, 255, 255);
+    Raymarch::Voxel BlockVoxelRed   = Raymarch::Voxel(255,   0,   0, 64);
+    Raymarch::Voxel BlockVoxelGreen = Raymarch::Voxel(  0, 255,   0, 64);
+    Raymarch::Voxel BlockVoxelBlue  = Raymarch::Voxel(  0,   0, 255, 64);
+    Raymarch::Voxel BlockVoxelBlack = Raymarch::Voxel(  0,   0,   0, 64);
+    Raymarch::Voxel BlockVoxelGrey  = Raymarch::Voxel(128, 128, 128, 64);
+    Raymarch::Voxel BlockVoxelWhite = Raymarch::Voxel(255, 255, 255, 64);
     Raymarch::Volume BlockRed   = Raymarch::VolumeFactory::CreateSolid(4, 8, 8, BlockVoxelRed);
     Raymarch::Volume BlockGreen = Raymarch::VolumeFactory::CreateSolid(4, 8, 8, BlockVoxelGreen);
     Raymarch::Volume BlockBlue  = Raymarch::VolumeFactory::CreateSolid(4, 8, 8, BlockVoxelBlue);
     Raymarch::Volume BlockBlack = Raymarch::VolumeFactory::CreateSolid(4, 8, 8, BlockVoxelBlack);
     Raymarch::Volume BlockGrey  = Raymarch::VolumeFactory::CreateSolid(4, 8, 8, BlockVoxelGrey);
     Raymarch::Volume BlockWhite = Raymarch::VolumeFactory::CreateSolid(4, 8, 8, BlockVoxelWhite);
-    State.AddToMap({ 8 * 2 + 80, 8, 64}, BlockRed  );
-    State.AddToMap({12 * 2 + 80, 8, 64}, BlockGreen);
-    State.AddToMap({16 * 2 + 80, 8, 64}, BlockBlue );
-    State.AddToMap({20 * 2 + 80, 8, 64}, BlockBlack);
-    State.AddToMap({24 * 2 + 80, 8, 64}, BlockGrey );
-    State.AddToMap({28 * 2 + 80, 8, 64}, BlockWhite);
+    State.AddToMap({{ 8 * 2 + 80, 8, 64}}, BlockRed  );
+    State.AddToMap({{12 * 2 + 80, 8, 64}}, BlockGreen);
+    State.AddToMap({{16 * 2 + 80, 8, 64}}, BlockBlue );
+    State.AddToMap({{20 * 2 + 80, 8, 64}}, BlockBlack);
+    State.AddToMap({{24 * 2 + 80, 8, 64}}, BlockGrey );
+    State.AddToMap({{28 * 2 + 80, 8, 64}}, BlockWhite);
 
     std::cout << "Finished creating an environment." << std::endl;
     std::cout << "----------" << std::endl;
@@ -321,7 +309,7 @@ int main(int ArgumentCount, char* ArgumentArray[]) {
         }
         #endif
 
-        #define AVOID_OLD_GLFWBUG 1
+        //#define AVOID_OLD_GLFWBUG 1
         #ifdef AVOID_OLD_GLFWBUG
             // Call this 100 times to try and avoid a GLFW bug and prevent duplicate key presses.
             // This is only required if the FPS of the renderer is low ( < 30ish).

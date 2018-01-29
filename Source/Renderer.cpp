@@ -36,7 +36,7 @@ THE SOFTWARE
     { \
         GLenum EC; \
         while ((EC = glGetError()) != GL_NO_ERROR) { \
-            std::cerr << "OpenGL error [" << EC << "] on line [" << __LINE__ << "]: " << gluErrorString(EC) << std::endl; \
+            std::cout << "OpenGL error [" << EC << "] on line [" << __LINE__ << "]: " << gluErrorString(EC) << std::endl; \
             asm("int3"); \
         } \
     }
@@ -77,11 +77,13 @@ namespace Raymarch {
         this->ShaderProgramFXAA = CHECK_GL(glCreateProgram());
         CHECK_GL(glAttachShader(this->ShaderProgramFXAA, this->VertexShader));
         CHECK_GL(glAttachShader(this->ShaderProgramFXAA, this->FragmentShaderFXAA));
+        CHECK_GL(glBindFragDataLocation(this->ShaderProgramFXAA, 0, "out_gl_FragColor"));
         CHECK_GL(glLinkProgram(this->ShaderProgramFXAA));
 
         this->ShaderProgramVoxel = CHECK_GL(glCreateProgram());
         CHECK_GL(glAttachShader(this->ShaderProgramVoxel, this->VertexShader));
         CHECK_GL(glAttachShader(this->ShaderProgramVoxel, this->FragmentShaderVoxel));
+        CHECK_GL(glBindFragDataLocation(this->ShaderProgramVoxel, 0, "out_gl_FragColor"));
         CHECK_GL(glLinkProgram(this->ShaderProgramVoxel));
 
         // Catch any errors.
@@ -137,11 +139,11 @@ namespace Raymarch {
         CHECK_GL(glUniform2fv(ShaderUniformScreenResolution, 1, ScreenResolution));
 
         // Create a framebuffer to store the intermediate rendered frame
-        CHECK_GL(glCreateFramebuffers(1, &this->FrameBufferFXAA));
+        CHECK_GL(glGenFramebuffers(1, &this->FrameBufferFXAA));
         CHECK_GL(glBindFramebuffer(GL_FRAMEBUFFER, this->FrameBufferFXAA));
 
         // Create a framebuffer texture for FXAA.
-        CHECK_GL(glCreateTextures(GL_TEXTURE_2D, 1, &this->TextureFXAA));
+        CHECK_GL(glGenTextures(1, &this->TextureFXAA));
         CHECK_GL(glBindTexture(GL_TEXTURE_2D, this->TextureFXAA));
         CHECK_GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
         CHECK_GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
@@ -173,17 +175,17 @@ namespace Raymarch {
 
         this->ShaderUniformVolumeSize            = CHECK_GL(glGetUniformLocation(this->ShaderProgramVoxel, "VolumeSize"));
 
-        // Clear the colour buffer.
-        CHECK_GL(glClearColor(0, 0, 0, 1));
-        CHECK_GL(glClear(GL_COLOR_BUFFER_BIT));
-
         // Configure OpenGL.
         CHECK_GL(glDisable(GL_DEPTH_TEST));
         CHECK_GL(glDisable(GL_CULL_FACE));
         CHECK_GL(glFrontFace(GL_CW));
 
+        // Clear the colour buffer.
+        CHECK_GL(glClearColor(0, 0, 0, 1));
+        CHECK_GL(glClear(GL_COLOR_BUFFER_BIT));
+
         // Create the volume texture.
-        CHECK_GL(glCreateTextures(GL_TEXTURE_2D, 1, &this->TextureVoxel));
+        CHECK_GL(glGenTextures(1, &this->TextureVoxel));
         CHECK_GL(glBindTexture(GL_TEXTURE_2D, this->TextureVoxel));
         CHECK_GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
         CHECK_GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));

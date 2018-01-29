@@ -13,6 +13,12 @@
 # Include the CMakeLists.txt file.
 !CMakeLists.txt
 
+# Include the Modules folder.
+!Modules/
+
+# Include all files in the Modules folder.
+! Modules/*
+
 # Include the Source folder.
 !Source/
 

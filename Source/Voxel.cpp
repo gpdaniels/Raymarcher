@@ -25,6 +25,7 @@ THE SOFTWARE
 #include "Voxel.hpp"
 
 #include <algorithm>
+#include <cmath>
 
 namespace Raymarch {
     // Constructor for empty voxels.

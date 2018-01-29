@@ -91,7 +91,7 @@ namespace Raymarch {
     public:
         /// @brief  Constructor to initialise member valiables based on the scene size.
         /// @param  SceneSize - The size of the scene that will be rendered.
-        GameState(const std::array<std::size_t, 3>& SceneSize = {64, 32, 64});
+        GameState(const std::array<std::size_t, 3>& SceneSize = {{64, 32, 64}});
 
     public:
         /// @brief  Clear the map.

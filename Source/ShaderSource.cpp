@@ -26,11 +26,16 @@ THE SOFTWARE
 
 namespace Raymarch {
     const std::string ShaderSource::VertexShaderSource = R"(
-    #version 130
+    #version 330
+
+    //in int gl_VertexID;
+    out vec2 out_gl_TexCoord[gl_MaxTextureCoords];
+    //out vec4 gl_Position;
+
     void main() {
         float X = -1.0 + float((gl_VertexID & 1) << 2);
         float Y = -1.0 + float((gl_VertexID & 2) << 1);
-        gl_TexCoord[0].st = vec2((X + 1.0) * 0.5, (Y + 1.0) * 0.5);
+        out_gl_TexCoord[0].st = vec2((X + 1.0) * 0.5, (Y + 1.0) * 0.5);
         gl_Position = vec4(X, Y, 0, 1);
     }
     )";
@@ -39,7 +44,10 @@ namespace Raymarch {
 
     // Modified from THREE.js: https://github.com/mrdoob/three.js
 
-    #version 130
+    #version 330
+
+    //in vec2 gl_FragCoord;
+    out vec4 out_gl_FragColor;
 
     #define FXAA_REDUCE_MIN   (1.0 / 128.0)
     #define FXAA_REDUCE_MUL   (1.0 / 8.0)
@@ -53,17 +61,17 @@ namespace Raymarch {
     vec2 ScreenResolutionInverse = vec2(1.0 / ScreenResolution.x, 1.0 / ScreenResolution.y);
 
     void main(void) {
-        vec4 RGBA = texture2D(Sampler, gl_FragCoord.xy * ScreenResolutionInverse);
+        vec4 RGBA = texture(Sampler, gl_FragCoord.xy * ScreenResolutionInverse);
         if (RGBA.a == 0.0) {
-            gl_FragColor = RGBA;
+            out_gl_FragColor = RGBA;
             return;
         }
 
         vec3 CellCenter    = RGBA.rgb;
-        vec3 CellNorthWest = texture2D(Sampler, (gl_FragCoord.xy + vec2(-1.0, -1.0)) * ScreenResolutionInverse).rgb;
-        vec3 CellNorthEast = texture2D(Sampler, (gl_FragCoord.xy + vec2(+1.0, -1.0)) * ScreenResolutionInverse).rgb;
-        vec3 CellSouthWest = texture2D(Sampler, (gl_FragCoord.xy + vec2(-1.0, +1.0)) * ScreenResolutionInverse).rgb;
-        vec3 CellSouthEast = texture2D(Sampler, (gl_FragCoord.xy + vec2(+1.0, +1.0)) * ScreenResolutionInverse).rgb;
+        vec3 CellNorthWest = texture(Sampler, (gl_FragCoord.xy + vec2(-1.0, -1.0)) * ScreenResolutionInverse).rgb;
+        vec3 CellNorthEast = texture(Sampler, (gl_FragCoord.xy + vec2(+1.0, -1.0)) * ScreenResolutionInverse).rgb;
+        vec3 CellSouthWest = texture(Sampler, (gl_FragCoord.xy + vec2(-1.0, +1.0)) * ScreenResolutionInverse).rgb;
+        vec3 CellSouthEast = texture(Sampler, (gl_FragCoord.xy + vec2(+1.0, +1.0)) * ScreenResolutionInverse).rgb;
 
         float CellLumaCenter    = dot(CellCenter,    LumaFactors);
         float CellLumaNorthWest = dot(CellNorthWest, LumaFactors);
@@ -86,20 +94,20 @@ namespace Raymarch {
         Gradient = min(vec2(FXAA_SPAN_MAX,  FXAA_SPAN_MAX), max(vec2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX), Gradient * GradientInverseMinimum)) * ScreenResolutionInverse;
 
         vec3 RGBResult1 = 0.5 * (
-            texture2D(Sampler, gl_FragCoord.xy * ScreenResolutionInverse + Gradient * (1.0 / 3.0 - 0.5)).rgb +
-            texture2D(Sampler, gl_FragCoord.xy * ScreenResolutionInverse + Gradient * (2.0 / 3.0 - 0.5)).rgb);
+            texture(Sampler, gl_FragCoord.xy * ScreenResolutionInverse + Gradient * (1.0 / 3.0 - 0.5)).rgb +
+            texture(Sampler, gl_FragCoord.xy * ScreenResolutionInverse + Gradient * (2.0 / 3.0 - 0.5)).rgb);
 
         vec3 RGBResult2 = RGBResult1 * 0.5 + 0.25 * (
-            texture2D(Sampler, gl_FragCoord.xy * ScreenResolutionInverse + Gradient * -0.5).rgb +
-            texture2D(Sampler, gl_FragCoord.xy * ScreenResolutionInverse + Gradient * +0.5).rgb);
+            texture(Sampler, gl_FragCoord.xy * ScreenResolutionInverse + Gradient * -0.5).rgb +
+            texture(Sampler, gl_FragCoord.xy * ScreenResolutionInverse + Gradient * +0.5).rgb);
 
         float Result2Luma = dot(RGBResult2, LumaFactors);
 
         if ((Result2Luma < CellLumaMinimum) || (Result2Luma > CellLumaMaximum)) {
-            gl_FragColor = vec4(RGBResult1, 1.0);
+            out_gl_FragColor = vec4(RGBResult1, 1.0);
         }
         else {
-            gl_FragColor = vec4(RGBResult2, 1.0);
+            out_gl_FragColor = vec4(RGBResult2, 1.0);
         }
     }
     )";
@@ -108,7 +116,10 @@ namespace Raymarch {
 
     // Originally based on Voxgrind: https://github.com/ivl/Voxgrind/blob/master/src/glsl/voxel.fs
 
-    #version 130
+    #version 330
+
+    //in vec2 gl_FragCoord;
+    out vec4 out_gl_FragColor;
 
     uniform vec2 ScreenResolution;
     uniform vec2 FramebufferResolution;
@@ -237,7 +248,7 @@ namespace Raymarch {
 
         // Abort if we're not in the rendering region of the frame buffer.
         if ((ViewportPosition.x > 1.0) || (ViewportPosition.y > 1.0)) {
-            gl_FragColor = FogColour;
+            out_gl_FragColor = FogColour;
             return;
         }
 
@@ -270,7 +281,7 @@ namespace Raymarch {
             // Initialize the marching inside the bounds.
             float IntersectionDepth;
             if (!RayBoxIntersect(RayOrigin, RayDirection, vec3(0.0, 0.0, 0.0), VolumeSize, IntersectionDepth)) {
-                gl_FragColor = FogColour;
+                out_gl_FragColor = FogColour;
                 return;
             }
             RayMarchOrigin = RayOrigin + RayDirection * IntersectionDepth + RayDirection * 0.0001;
@@ -283,7 +294,7 @@ namespace Raymarch {
         vec3 DeltaTranslation = RayStep / RayDirection;
 
         // Initially set the colour to the fog colour.
-        gl_FragColor = vec4(FogColour.r, FogColour.g, FogColour.b, 0.0);
+        out_gl_FragColor = vec4(FogColour.r, FogColour.g, FogColour.b, 0.0);
 
         // Ray marching loop.
         for (int Iteration = 0; Iteration < 2048; ++Iteration) {
@@ -297,7 +308,7 @@ namespace Raymarch {
                 // Calculate the intersection depth.
                 float IntersectionDepth;
                 if (!RayBoxIntersect(RayOrigin, RayDirection, RayPosition, RayPosition + vec3(1.0, 1.0, 1.0), IntersectionDepth)) {
-                    gl_FragColor = mix(gl_FragColor, FogColour, FogColour.a);
+                    out_gl_FragColor = mix(out_gl_FragColor, FogColour, FogColour.a);
                     return;
                 }
 
@@ -362,13 +373,13 @@ namespace Raymarch {
                 vec4 VoxelColour = mix(Voxel * PointLight, FogColour, Fog);
 
                 // Mix the lit voxel with the previously combined colours.
-                gl_FragColor = mix(gl_FragColor, VoxelColour, (1.0 - gl_FragColor.a) * Voxel.a);
-                gl_FragColor.a = min(1.0, gl_FragColor.a + Voxel.a);
+                out_gl_FragColor = mix(out_gl_FragColor, VoxelColour, (1.0 - out_gl_FragColor.a) * Voxel.a);
+                out_gl_FragColor.a = min(1.0, out_gl_FragColor.a + Voxel.a);
 
                 // Test if the current colour transparancy is solid.
-                if (gl_FragColor.a >= 1.0) {
+                if (out_gl_FragColor.a >= 1.0) {
                     // If it is then return the current colour as there is no point marching further.
-                    gl_FragColor.a = 1.0;
+                    out_gl_FragColor.a = 1.0;
                     return;
                 }
             }
@@ -383,13 +394,13 @@ namespace Raymarch {
              || (RayPosition.y >= VolumeSize.y || RayPosition.y < 0.0)
              || (RayPosition.z >= VolumeSize.z || RayPosition.z < 0.0)) {
                 // If not within bounds return current colour.
-                gl_FragColor.a = 1.0;
+                out_gl_FragColor.a = 1.0;
                 return;
             }
         }
 
         // If we have reached the maximum number of iterations, just return the current colour.
-        gl_FragColor.a = 1.0;
+        out_gl_FragColor.a = 1.0;
     }
     )";
 }
