@@ -9,7 +9,7 @@ if(GLEW_INCLUDE_DIRS AND GLEW_LIBRARIES)
    set(GLEW_FOUND TRUE)
 else(GLEW_INCLUDE_DIRS AND GLEW_LIBRARIES)
 
-SET(GLEW_DIR "/Users/gpdaniels/Repositories/glew-2.1.0")
+SET(GLEW_DIR "/Users/gpdaniels/Projects/glew-2.1.0")
 
 FIND_PATH(GLEW_INCLUDE_DIRS GL/glew.h
    /usr/include

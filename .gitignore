@@ -17,7 +17,7 @@
 !Modules/
 
 # Include all files in the Modules folder.
-! Modules/*
+!Modules/*
 
 # Include the Source folder.
 !Source/

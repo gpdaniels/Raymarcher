@@ -30,7 +30,7 @@
 # GLFW_LIBRARIES
 #
 
-SET(GLFW_LOCATION "/Users/gpdaniels/Repositories/glfw-3.2.1")
+SET(GLFW_LOCATION "/Users/gpdaniels/Projects/glfw-3.2.1")
 
 find_path( GLFW_INCLUDE_DIRS 
     NAMES
